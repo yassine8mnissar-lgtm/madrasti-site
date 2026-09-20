@@ -97,6 +97,21 @@
   .admin-list-row{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:6px 0; border-bottom:1px dashed var(--line);}
   .admin-list-row button{background:none; border:none; color:#a63b3b; cursor:pointer; font-size:12px;}
 
+  section.books{padding:32px 0 60px;}
+  .books-head{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px; margin-bottom:22px;}
+  .books-head h2{font-size:24px; margin:0 0 6px;}
+  .books-head p{color:var(--ink-soft); font-size:14px; margin:0; max-width:460px;}
+  .book-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:18px;}
+  .book-card{border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column;}
+  .book-cover{aspect-ratio:3/4; background:linear-gradient(160deg, var(--gold-soft), var(--surface)); display:flex; align-items:center; justify-content:center; border-bottom:1px solid var(--line); font-family:var(--serif); font-size:13px; color:var(--gold-ink); text-align:center; padding:14px;}
+  html[dir="rtl"] .book-cover{font-family:'Cairo',sans-serif;}
+  .book-info{padding:14px; flex:1; display:flex; flex-direction:column; gap:4px;}
+  .book-info h3{font-size:14.5px; margin:0; line-height:1.35;}
+  .book-author{font-size:12px; color:var(--ink-soft);}
+  .book-field-tag{font-size:11px; color:var(--gold-ink); font-weight:600; margin-top:auto; padding-top:8px;}
+  .book-link{font-size:12px; color:var(--green-ink); text-decoration:none; font-weight:600;}
+  .book-link:hover{text-decoration:underline;}
+
   @media (max-width:640px){ .hero h1{font-size:28px;} nav.main-nav{order:3; width:100%; overflow-x:auto; padding-bottom:4px;} }
 </style>
 </head>
@@ -106,9 +121,9 @@
   <div class="wrap header-row">
     <div class="brand">Madrasti <small data-t="tagline">Study Hub</small></div>
     <nav class="main-nav">
-      <a class="active" data-t="nav_home">Home</a>
-      <a data-t="nav_fields">Fields</a>
-      <a data-t="nav_books">Books</a>
+      <a id="navHome" class="active" data-t="nav_home">Home</a>
+      <a id="navFields" data-t="nav_fields">Fields</a>
+      <a id="navBooks" data-t="nav_books">Books</a>
     </nav>
     <div class="controls">
       <select class="lang-select" id="langSelect">
@@ -138,7 +153,7 @@
   </div>
 </section>
 
-<div class="wrap">
+<div class="wrap" id="catalogFilters">
   <div class="field-tabs" id="fieldTabs"></div>
   <div class="filter-row">
     <div class="chip-group" id="semFilter"></div>
@@ -146,8 +161,21 @@
   </div>
 </div>
 
-<section class="catalog">
+<section class="catalog" id="catalogSection">
   <div class="wrap" id="catalogRoot"></div>
+</section>
+
+<section class="books" id="booksSection" style="display:none;">
+  <div class="wrap">
+    <div class="books-head">
+      <div>
+        <h2 data-t="books_title">Recommended books</h2>
+        <p data-t="books_sub">A small shared reading list — reference books by field, added by students and admins.</p>
+      </div>
+      <button class="btn btn-ghost" id="openBookAdminBtn" data-t="hero_cta_add_book">Add a book</button>
+    </div>
+    <div id="booksRoot" class="book-grid"></div>
+  </div>
 </section>
 
 <footer>
@@ -203,6 +231,40 @@
   </div>
 </div>
 
+<div class="overlay" id="bookAdminOverlay">
+  <div class="modal">
+    <h2 data-t="modal_book_title">Add a book</h2>
+    <p class="sub" data-t="modal_sub">Sample admin tool — resources you add are saved on this browser only (other visitors won't see them).</p>
+
+    <div class="field">
+      <label data-t="b_field">Field</label>
+      <select id="bInputField"></select>
+    </div>
+    <div class="field">
+      <label data-t="b_title">Book title</label>
+      <input id="bInputTitle" type="text" placeholder="Ex: Introduction générale au droit">
+    </div>
+    <div class="field">
+      <label data-t="b_author">Author</label>
+      <input id="bInputAuthor" type="text" placeholder="Ex: François Terré">
+    </div>
+    <div class="field">
+      <label data-t="f_link">Link (optional)</label>
+      <input id="bInputLink" type="text" placeholder="https://...">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveBookBtn" data-t="save" style="border:none;">Save</button>
+      <button class="btn btn-ghost" id="cancelBookAdminBtn" data-t="cancel">Cancel</button>
+    </div>
+
+    <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+      <p class="sub" style="margin:0 0 6px;" data-t="added_by_you">Added by you this session</p>
+      <div id="addedBooksList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -222,17 +284,23 @@ const STRINGS = {
     footer_note:"Exemple construit à titre de démonstration, avec une structure inspirée d'un vrai site de ressources d'études.",
     footer_admin:"Espace développeur / admin",
     modal_title:"Ajouter une ressource",
-    modal_sub:"Outil d'exemple — accessible librement ici. Les ressources ajoutées sont enregistrées sur ce navigateur uniquement (elles ne seront pas visibles pour les autres visiteurs).",
+    modal_sub:"Outil d'exemple — accessible librement ici. Les ressources ajoutées sont visibles par tous les visiteurs du site (base de données partagée).",
     f_field:"Filière", f_sem:"Semestre", f_subject:"Nom de la matière",
     f_type:"Type de ressource", f_title:"Titre de la ressource", f_link:"Lien (optionnel)",
     type_cours:"Cours", type_resume:"Résumé", type_exam:"Examens / Exercices",
     save:"Enregistrer", cancel:"Annuler",
-    added_by_you:"Ajouté par vous cette session",
+    added_by_you:"Ressources ajoutées (visibles par tous)",
     empty:"Rien pour l'instant sur cette matière — ajoutez une ressource depuis l'espace admin.",
     remove:"retirer",
     toast_added:"Ressource ajoutée.",
     field_eco:"Sciences Économiques et Gestion", field_dar:"Droit (arabe)", field_dfr:"Droit (français)",
-    master:"Master"
+    master:"Master",
+    hero_cta_add_book:"Ajouter un livre",
+    books_title:"Livres conseillés",
+    books_sub:"Une petite bibliothèque partagée — ouvrages de référence par filière, ajoutés par les étudiants et les admins.",
+    books_empty:"Aucun livre pour l'instant dans cette filière.",
+    modal_book_title:"Ajouter un livre",
+    b_field:"Filière", b_title:"Titre du livre", b_author:"Auteur"
   },
   en:{
     tagline:"Study Hub",
@@ -248,17 +316,23 @@ const STRINGS = {
     footer_note:"Sample built for demonstration, with a structure inspired by a real study-resources site.",
     footer_admin:"Developer / admin panel",
     modal_title:"Add a resource",
-    modal_sub:"Sample admin tool — resources you add are saved on this browser only (other visitors won't see them).",
+    modal_sub:"Sample admin tool — resources you add are visible to every visitor (shared database).",
     f_field:"Field", f_sem:"Semester", f_subject:"Subject name",
     f_type:"Resource type", f_title:"Resource title", f_link:"Link (optional)",
     type_cours:"Lesson", type_resume:"Summary", type_exam:"Exam / Exercises",
     save:"Save", cancel:"Cancel",
-    added_by_you:"Added by you this session",
+    added_by_you:"Added resources (visible to everyone)",
     empty:"Nothing here yet — add a resource from the admin panel.",
     remove:"remove",
     toast_added:"Resource added.",
     field_eco:"Economics & Management", field_dar:"Law (Arabic track)", field_dfr:"Law (French track)",
-    master:"Master"
+    master:"Master",
+    hero_cta_add_book:"Add a book",
+    books_title:"Recommended books",
+    books_sub:"A small shared reading list — reference books by field, added by students and admins.",
+    books_empty:"No books yet in this field.",
+    modal_book_title:"Add a book",
+    b_field:"Field", b_title:"Book title", b_author:"Author"
   },
   ar:{
     tagline:"منصة تعليمية",
@@ -274,17 +348,23 @@ const STRINGS = {
     footer_note:"نموذج تجريبي للعرض، ببنية مستوحاة من موقع حقيقي للموارد الدراسية.",
     footer_admin:"لوحة المطور / الإدارة",
     modal_title:"إضافة مورد",
-    modal_sub:"أداة إدارة تجريبية — الموارد التي تضيفها تُحفظ على هذا المتصفح فقط (لن يراها الزوار الآخرون).",
+    modal_sub:"أداة إدارة تجريبية — الموارد التي تضيفها تظهر لجميع زوار الموقع (قاعدة بيانات مشتركة).",
     f_field:"الشعبة", f_sem:"السداسي", f_subject:"اسم المادة",
     f_type:"نوع المورد", f_title:"عنوان المورد", f_link:"رابط (اختياري)",
     type_cours:"درس", type_resume:"ملخص", type_exam:"امتحانات / تمارين",
     save:"حفظ", cancel:"إلغاء",
-    added_by_you:"أضفتها خلال هذه الجلسة",
+    added_by_you:"الموارد المضافة (تظهر للجميع)",
     empty:"لا شيء بعد في هذه المادة — أضف موردًا من لوحة الإدارة.",
     remove:"حذف",
     toast_added:"تمت إضافة المورد.",
     field_eco:"العلوم الاقتصادية والتدبير", field_dar:"القانون (بالعربية)", field_dfr:"القانون (بالفرنسية)",
-    master:"ماستر"
+    master:"ماستر",
+    hero_cta_add_book:"إضافة كتاب",
+    books_title:"كتب منصوح بها",
+    books_sub:"مكتبة صغيرة مشتركة — مراجع حسب الشعبة، من إضافة الطلبة والإدارة.",
+    books_empty:"لا توجد كتب بعد في هذه الشعبة.",
+    modal_book_title:"إضافة كتاب",
+    b_field:"الشعبة", b_title:"عنوان الكتاب", b_author:"المؤلف"
   }
 };
 
@@ -293,6 +373,20 @@ const FIELDS = [
   { id:"eco", nameKey:"field_eco", sems:["S1","S2","S3","S4","S5","S6","MASTER"] },
   { id:"dar", nameKey:"field_dar", sems:["S1","S2","S3","S4","S5"] },
   { id:"dfr", nameKey:"field_dfr", sems:["S1","S2","S3","S4","S5","S6"] }
+];
+
+/* ---------- sample books, a small reading list per field ---------- */
+const DEFAULT_BOOKS = [
+  { field:"eco", title:"Économie générale", author:"Béatrice & Francis Grandguillot" },
+  { field:"eco", title:"Comptabilité générale", author:"Robert Obert" },
+  { field:"eco", title:"Manuel de microéconomie", author:"Hal Varian" },
+  { field:"eco", title:"Marketing Management", author:"Kotler & Keller" },
+  { field:"dar", title:"الوجيز في القانون الدستوري", author:"—" },
+  { field:"dar", title:"شرح القانون المدني", author:"—" },
+  { field:"dar", title:"مدخل للعلوم القانونية", author:"—" },
+  { field:"dfr", title:"Introduction générale au droit", author:"François Terré" },
+  { field:"dfr", title:"Droit des obligations", author:"Alain Bénabent" },
+  { field:"dfr", title:"Droit constitutionnel", author:"Dominique Chagnollaud" }
 ];
 
 /* ---------- catalog, drawn from the reference site's course structure ---------- */
@@ -380,8 +474,14 @@ let lang = "fr";
 let activeField = "eco";
 let activeSem = "all";
 let activeType = "all";
-let customResources = []; // {field, sem, subject, type, title, link}
-const STORAGE_KEY = "madrasti-custom-resources";
+let customResources = []; // {id, field, sem, subject, type, title, link}
+let customBooks = []; // {id, field, title, author, link}
+let view = "catalog"; // "catalog" | "books"
+const SUPABASE_URL = "https://ypgeocdyocgecnipcgwv.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwZ2VvY2R5b2NnZWNuaXBjZ3d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5MjQxOTQsImV4cCI6MjEwNTUwMDE5NH0.Cd9Y9kdDsumYlA1LBO0Ldraawel-DavY96hpbaY2znI";
+function sbHeaders(extra){
+  return Object.assign({ "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" }, extra || {});
+}
 
 function t(key){ return (STRINGS[lang] && STRINGS[lang][key]) || key; }
 function fieldName(id){ const f=FIELDS.find(x=>x.id===id); return f? t(f.nameKey) : id; }
@@ -532,6 +632,68 @@ function renderCatalog(){
   document.getElementById("statResources").textContent = resourceCount;
 }
 
+function renderBooks(){
+  const root = document.getElementById("booksRoot");
+  root.innerHTML = "";
+  const all = DEFAULT_BOOKS.filter(b=>b.field===activeField)
+    .concat(customBooks.filter(b=>b.field===activeField).map(b=>({field:b.field, title:b.title, author:b.author, link:b.link})));
+
+  if(all.length===0){
+    const p = document.createElement("p");
+    p.className = "empty-note";
+    p.textContent = t("books_empty");
+    root.appendChild(p);
+    return;
+  }
+
+  all.forEach(b=>{
+    const card = document.createElement("div");
+    card.className = "book-card";
+
+    const cover = document.createElement("div");
+    cover.className = "book-cover";
+    cover.textContent = b.title;
+    card.appendChild(cover);
+
+    const info = document.createElement("div");
+    info.className = "book-info";
+    const h3 = document.createElement("h3");
+    h3.textContent = b.title;
+    info.appendChild(h3);
+    if(b.author){
+      const author = document.createElement("div");
+      author.className = "book-author";
+      author.textContent = b.author;
+      info.appendChild(author);
+    }
+    if(b.link){
+      const link = document.createElement("a");
+      link.className = "book-link";
+      link.href = b.link; link.target = "_blank"; link.rel = "noopener";
+      link.textContent = t("f_link").replace(" (optionnel)","").replace(" (optional)","").replace(" (اختياري)","");
+      info.appendChild(link);
+    }
+    const tag = document.createElement("div");
+    tag.className = "book-field-tag";
+    tag.textContent = fieldName(b.field);
+    info.appendChild(tag);
+
+    card.appendChild(info);
+    root.appendChild(card);
+  });
+}
+
+function setView(v){
+  view = v;
+  document.getElementById("navHome").classList.toggle("active", v==="catalog");
+  document.getElementById("navFields").classList.toggle("active", v==="catalog");
+  document.getElementById("navBooks").classList.toggle("active", v==="books");
+  document.getElementById("catalogFilters").style.display = v==="catalog" ? "" : "none";
+  document.getElementById("catalogSection").style.display = v==="catalog" ? "" : "none";
+  document.getElementById("booksSection").style.display = v==="books" ? "" : "none";
+  renderAll();
+}
+
 function renderAdminSelects(){
   const fieldSel = document.getElementById("fInputField");
   const prevField = fieldSel.value || activeField;
@@ -566,14 +728,48 @@ function renderAddedList(){
     box.appendChild(p);
     return;
   }
-  customResources.forEach((r,i)=>{
+  customResources.forEach((r)=>{
     const row = document.createElement("div");
     row.className = "admin-list-row";
     const span = document.createElement("span");
     span.textContent = `${r.subject} — ${r.title}`;
     const btn = document.createElement("button");
     btn.textContent = t("remove");
-    btn.onclick = ()=>{ customResources.splice(i,1); persist(); renderAll(); };
+    btn.onclick = async ()=>{ await deleteResource(r.id); renderAll(); };
+    row.appendChild(span); row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+
+function renderBookAdminSelect(){
+  const sel = document.getElementById("bInputField");
+  const prev = sel.value || activeField;
+  sel.innerHTML = "";
+  FIELDS.forEach(f=>{
+    const opt = document.createElement("option");
+    opt.value = f.id; opt.textContent = fieldName(f.id);
+    sel.appendChild(opt);
+  });
+  sel.value = prev;
+}
+
+function renderAddedBooksList(){
+  const box = document.getElementById("addedBooksList");
+  box.innerHTML = "";
+  if(customBooks.length===0){
+    const p = document.createElement("p");
+    p.className = "sub"; p.style.margin = "0"; p.textContent = "—";
+    box.appendChild(p);
+    return;
+  }
+  customBooks.forEach((b)=>{
+    const row = document.createElement("div");
+    row.className = "admin-list-row";
+    const span = document.createElement("span");
+    span.textContent = b.author ? `${b.title} — ${b.author}` : b.title;
+    const btn = document.createElement("button");
+    btn.textContent = t("remove");
+    btn.onclick = async ()=>{ await deleteBook(b.id); renderAll(); };
     row.appendChild(span); row.appendChild(btn);
     box.appendChild(row);
   });
@@ -582,25 +778,61 @@ function renderAddedList(){
 function renderAll(){
   applyStaticStrings();
   renderFieldTabs();
-  renderSemFilter();
-  renderTypeFilter();
-  renderCatalog();
+  if(view==="catalog"){
+    renderSemFilter();
+    renderTypeFilter();
+    renderCatalog();
+  } else {
+    renderBooks();
+  }
   renderAdminSelects();
   renderAddedList();
+  renderBookAdminSelect();
+  renderAddedBooksList();
 }
 
-/* ---------- storage ---------- */
-/* Saves to this browser only (localStorage). Each admin's additions stay on
-   their own device/browser — nothing is sent to a server. */
+/* ---------- storage (Supabase — shared across every visitor) ---------- */
 async function loadResources(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    customResources = raw ? JSON.parse(raw) : [];
-  }catch(e){ customResources = []; }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/resources?select=*&order=created_at.asc`, { headers: sbHeaders() });
+    customResources = res.ok ? await res.json() : [];
+  }catch(e){ console.error("Load error:", e); customResources = []; }
 }
-async function persist(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(customResources)); }
-  catch(e){ console.error("Storage error:", e); }
+async function insertResource(row){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/resources`, {
+      method:"POST", headers: sbHeaders({ "Prefer":"return=representation" }), body: JSON.stringify(row)
+    });
+    if(res.ok){ const created = await res.json(); customResources.push(created[0]); return true; }
+  }catch(e){ console.error("Insert error:", e); }
+  return false;
+}
+async function deleteResource(id){
+  try{
+    await fetch(`${SUPABASE_URL}/rest/v1/resources?id=eq.${id}`, { method:"DELETE", headers: sbHeaders() });
+    customResources = customResources.filter(r=>r.id!==id);
+  }catch(e){ console.error("Delete error:", e); }
+}
+async function loadBooks(){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/books?select=*&order=created_at.asc`, { headers: sbHeaders() });
+    customBooks = res.ok ? await res.json() : [];
+  }catch(e){ console.error("Load error:", e); customBooks = []; }
+}
+async function insertBook(row){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/books`, {
+      method:"POST", headers: sbHeaders({ "Prefer":"return=representation" }), body: JSON.stringify(row)
+    });
+    if(res.ok){ const created = await res.json(); customBooks.push(created[0]); return true; }
+  }catch(e){ console.error("Insert error:", e); }
+  return false;
+}
+async function deleteBook(id){
+  try{
+    await fetch(`${SUPABASE_URL}/rest/v1/books?id=eq.${id}`, { method:"DELETE", headers: sbHeaders() });
+    customBooks = customBooks.filter(b=>b.id!==id);
+  }catch(e){ console.error("Delete error:", e); }
 }
 
 function showToast(msg){
@@ -610,6 +842,9 @@ function showToast(msg){
 }
 
 /* ---------- events ---------- */
+document.getElementById("navHome").addEventListener("click", ()=> setView("catalog"));
+document.getElementById("navFields").addEventListener("click", ()=> setView("catalog"));
+document.getElementById("navBooks").addEventListener("click", ()=> setView("books"));
 document.getElementById("langSelect").addEventListener("change", e=>{ lang = e.target.value; renderAll(); });
 document.getElementById("darkToggle").addEventListener("click", ()=>{ document.documentElement.classList.toggle("dark"); });
 function openAdmin(){ document.getElementById("adminOverlay").classList.add("show"); }
@@ -631,8 +866,11 @@ document.getElementById("saveResourceBtn").addEventListener("click", async ()=>{
     showToast(lang==="ar" ? "يرجى ملء اسم المادة والعنوان" : lang==="en" ? "Please fill subject and title" : "Merci de remplir la matière et le titre");
     return;
   }
-  customResources.push({field, sem, subject, type, title, link: link || null});
-  await persist();
+  const ok = await insertResource({field, sem, subject, type, title, link: link || null});
+  if(!ok){
+    showToast(lang==="ar" ? "تعذر الحفظ، حاول مجددًا" : lang==="en" ? "Couldn't save, try again" : "Échec de l'enregistrement, réessaie");
+    return;
+  }
   document.getElementById("fInputSubject").value = "";
   document.getElementById("fInputTitle").value = "";
   document.getElementById("fInputLink").value = "";
@@ -640,9 +878,38 @@ document.getElementById("saveResourceBtn").addEventListener("click", async ()=>{
   showToast(t("toast_added"));
 });
 
+function openBookAdmin(){ document.getElementById("bookAdminOverlay").classList.add("show"); }
+function closeBookAdmin(){ document.getElementById("bookAdminOverlay").classList.remove("show"); }
+document.getElementById("openBookAdminBtn").addEventListener("click", openBookAdmin);
+document.getElementById("cancelBookAdminBtn").addEventListener("click", closeBookAdmin);
+document.getElementById("bookAdminOverlay").addEventListener("click", e=>{ if(e.target.id==="bookAdminOverlay") closeBookAdmin(); });
+
+document.getElementById("saveBookBtn").addEventListener("click", async ()=>{
+  const field = document.getElementById("bInputField").value;
+  const title = document.getElementById("bInputTitle").value.trim();
+  const author = document.getElementById("bInputAuthor").value.trim();
+  const link = document.getElementById("bInputLink").value.trim();
+
+  if(!title){
+    showToast(lang==="ar" ? "يرجى إدخال عنوان الكتاب" : lang==="en" ? "Please enter a book title" : "Merci d'indiquer le titre du livre");
+    return;
+  }
+  const ok = await insertBook({field, title, author: author || null, link: link || null});
+  if(!ok){
+    showToast(lang==="ar" ? "تعذر الحفظ، حاول مجددًا" : lang==="en" ? "Couldn't save, try again" : "Échec de l'enregistrement, réessaie");
+    return;
+  }
+  document.getElementById("bInputTitle").value = "";
+  document.getElementById("bInputAuthor").value = "";
+  document.getElementById("bInputLink").value = "";
+  renderAll();
+  showToast(t("toast_added"));
+});
+
 /* ---------- init ---------- */
 (async function init(){
   await loadResources();
+  await loadBooks();
   renderAll();
 })();
 </script>
