@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Madrasti — Study Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf8f3; --surface:#ffffff; --ink:#1b1f2a; --ink-soft:#565b68; --line:#e6e1d3;
+    --gold:#a6822f; --gold-ink:#6f5620; --gold-soft:#f1e7cd;
+    --green:#3c6b47; --green-soft:#e4efe3; --green-ink:#2a4a32;
+    --shadow:0 1px 2px rgba(27,31,42,.05); --radius:2px;
+    --serif:'Lora','Cairo',serif; --sans:'Inter','Cairo',sans-serif;
+  }
+  html.dark{
+    --bg:#13161c; --surface:#1a1e26; --ink:#ece9e0; --ink-soft:#a4a9b6; --line:#2b303b;
+    --gold:#c9a356; --gold-ink:#e7c884; --gold-soft:#2a2416;
+    --green:#6fbf85; --green-soft:#1b2c20; --green-ink:#9adfab;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55; transition:background .25s ease,color .25s ease;}
+  h1,h2,h3,.brand{font-family:var(--serif); font-weight:600; letter-spacing:.2px;}
+  html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3, html[dir="rtl"] .brand{font-family:'Cairo',sans-serif; font-weight:700;}
+  a{color:inherit} button{font-family:inherit}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
+
+  header{border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:20;}
+  .header-row{display:flex; align-items:center; justify-content:space-between; padding:18px 0; gap:16px; flex-wrap:wrap;}
+  .brand{font-size:22px; display:flex; align-items:baseline; gap:8px;}
+  .brand small{font-family:var(--sans); font-size:12px; color:var(--ink-soft); font-weight:500;}
+  nav.main-nav{display:flex; gap:22px; font-size:14px; font-weight:500;}
+  nav.main-nav a{text-decoration:none; color:var(--ink-soft); padding-bottom:4px; border-bottom:2px solid transparent; cursor:pointer;}
+  nav.main-nav a.active, nav.main-nav a:hover{color:var(--ink); border-color:var(--gold);}
+  .controls{display:flex; align-items:center; gap:10px;}
+  .icon-btn{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); border-radius:var(--radius); padding:7px 10px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;}
+  .icon-btn:hover{color:var(--ink); border-color:var(--gold);}
+  select.lang-select{border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:var(--radius); padding:7px 10px; font-size:13px; cursor:pointer;}
+
+  .hero{padding:56px 0 40px; border-bottom:1px solid var(--line);}
+  .hero h1{font-size:38px; line-height:1.15; max-width:660px; margin:0 0 14px;}
+  .hero p{color:var(--ink-soft); max-width:520px; font-size:16px; margin:0 0 22px;}
+  .cta-row{display:flex; gap:12px; flex-wrap:wrap;}
+  .btn{display:inline-block; padding:11px 20px; border-radius:var(--radius); font-size:14px; font-weight:600; cursor:pointer; border:1px solid var(--gold); text-decoration:none;}
+  .btn-primary{background:var(--gold); color:#fff;}
+  html.dark .btn-primary{color:#1a1408;}
+  .btn-primary:hover{background:var(--gold-ink);}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--gold);}
+  .stat-line{display:flex; gap:28px; margin-top:18px; flex-wrap:wrap;}
+  .stat{font-size:13px; color:var(--ink-soft);}
+  .stat b{display:block; font-family:var(--serif); font-size:26px; color:var(--ink); font-weight:600;}
+  html[dir="rtl"] .stat b{font-family:'Cairo',sans-serif;}
+
+  .tip-banner{display:flex; align-items:center; gap:10px; background:var(--green-soft); border:1px solid var(--green); color:var(--green-ink); border-radius:var(--radius); padding:10px 14px; font-size:13.5px; margin-top:20px; max-width:620px;}
+
+  .field-tabs{display:flex; gap:6px; padding:20px 0 0; flex-wrap:wrap;}
+  .tab{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); padding:9px 16px; border-radius:var(--radius) var(--radius) 0 0; font-size:13.5px; font-weight:600; cursor:pointer; border-bottom:none; margin-bottom:-1px;}
+  .tab.active{color:var(--ink); background:var(--bg); border-bottom:1px solid var(--bg); position:relative;}
+
+  .filter-row{display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:16px 0; border-bottom:1px solid var(--line); border-top:1px solid var(--line);}
+  .chip-group{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); padding:7px 14px; border-radius:999px; font-size:13px; cursor:pointer;}
+  .chip.active{border-color:var(--gold); color:var(--ink); background:var(--gold-soft);}
+  .chip.type-resume.active{border-color:var(--green); background:var(--green-soft); color:var(--green-ink);}
+
+  section.catalog{padding:32px 0 60px;}
+  .field-title{font-size:15px; color:var(--ink-soft); margin:0 0 16px; font-weight:600;}
+  .course-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; margin-bottom:36px;}
+  .course-card{border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow);}
+  .course-card h3{font-size:16.5px; margin:0 0 4px;}
+  .course-sem{font-size:12px; color:var(--gold-ink); font-weight:600; margin-bottom:10px;}
+  .res-list{list-style:none; margin:12px 0 0; padding:0; border-top:1px solid var(--line);}
+  .res-list li{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13.5px;}
+  .res-list li:last-child{border-bottom:none;}
+  .res-type{font-size:11px; padding:3px 8px; border-radius:999px; font-weight:600; background:var(--gold-soft); color:var(--gold-ink);}
+  .res-type.resume{background:var(--green-soft); color:var(--green-ink);}
+  .empty-note{font-size:12.5px; color:var(--ink-soft); padding:10px 0 0; font-style:italic;}
+
+  footer{border-top:1px solid var(--line); padding:28px 0 40px;}
+  .footer-row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; font-size:13px; color:var(--ink-soft);}
+  .admin-toggle{background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-size:12.5px; padding:0;}
+
+  .overlay{position:fixed; inset:0; background:rgba(15,17,22,.55); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); max-width:440px; width:100%; padding:26px; max-height:88vh; overflow:auto;}
+  .modal h2{font-size:19px; margin:0 0 4px;}
+  .modal .sub{font-size:12.5px; color:var(--ink-soft); margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:5px; color:var(--ink-soft);}
+  .field input, .field select{width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:var(--radius); background:var(--bg); color:var(--ink); font-size:13.5px; font-family:inherit;}
+  .modal-actions{display:flex; gap:10px; margin-top:18px;}
+  .toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:var(--radius); font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s ease; z-index:60;}
+  .toast.show{opacity:1;}
+  .admin-list-row{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:6px 0; border-bottom:1px dashed var(--line);}
+  .admin-list-row button{background:none; border:none; color:#a63b3b; cursor:pointer; font-size:12px;}
+
+  @media (max-width:640px){ .hero h1{font-size:28px;} nav.main-nav{order:3; width:100%; overflow-x:auto; padding-bottom:4px;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <div class="brand">Madrasti <small data-t="tagline">Study Hub</small></div>
+    <nav class="main-nav">
+      <a class="active" data-t="nav_home">Home</a>
+      <a data-t="nav_fields">Fields</a>
+      <a data-t="nav_books">Books</a>
+    </nav>
+    <div class="controls">
+      <select class="lang-select" id="langSelect">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="ar">العربية</option>
+      </select>
+      <button class="icon-btn" id="darkToggle" data-t="dark_toggle">Dark mode</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1 data-t="hero_title">Every course, every semester, one shelf.</h1>
+    <p data-t="hero_sub">Lessons, summaries and past exams organised by field and semester — built by students, kept open for everyone.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" data-t="hero_cta_browse">Browse resources</a>
+      <a class="btn btn-ghost" id="openAdminBtn" data-t="hero_cta_admin">Admin — add a resource</a>
+    </div>
+    <div class="stat-line">
+      <div class="stat"><b id="statSubjects">0</b><span data-t="stat_subjects">subjects</span></div>
+      <div class="stat"><b id="statResources">0</b><span data-t="stat_resources">resources</span></div>
+      <div class="stat"><b>3</b><span data-t="stat_langs">languages</span></div>
+    </div>
+    <div class="tip-banner" id="tipBanner">💡 <span data-t="tip_resume">New here? Start with the summaries (Résumé) — they're the fastest way to review before exams.</span></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="field-tabs" id="fieldTabs"></div>
+  <div class="filter-row">
+    <div class="chip-group" id="semFilter"></div>
+    <div class="chip-group" id="typeFilter"></div>
+  </div>
+</div>
+
+<section class="catalog">
+  <div class="wrap" id="catalogRoot"></div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <span data-t="footer_note">Sample built for demonstration, with structure drawn from a real study-resources site.</span>
+    <button class="admin-toggle" id="openAdminBtn2" data-t="footer_admin">Developer / admin panel</button>
+  </div>
+</footer>
+
+<div class="overlay" id="adminOverlay">
+  <div class="modal">
+    <h2 data-t="modal_title">Add a resource</h2>
+    <p class="sub" data-t="modal_sub">Sample admin tool — anyone can try it here; a real deployment would sit behind a login.</p>
+
+    <div class="field">
+      <label data-t="f_field">Field</label>
+      <select id="fInputField"></select>
+    </div>
+    <div class="field">
+      <label data-t="f_sem">Semester</label>
+      <select id="fInputSem"></select>
+    </div>
+    <div class="field">
+      <label data-t="f_subject">Subject name</label>
+      <input id="fInputSubject" type="text" placeholder="Ex: Microéconomie">
+    </div>
+    <div class="field">
+      <label data-t="f_type">Resource type</label>
+      <select id="fInputType">
+        <option value="cours" data-t="type_cours">Lesson</option>
+        <option value="resume" data-t="type_resume">Summary</option>
+        <option value="exam" data-t="type_exam">Exam / Exercises</option>
+      </select>
+    </div>
+    <div class="field">
+      <label data-t="f_title">Resource title</label>
+      <input id="fInputTitle" type="text" placeholder="Ex: Chapitre 3 — Offre et demande">
+    </div>
+    <div class="field">
+      <label data-t="f_link">Link (optional)</label>
+      <input id="fInputLink" type="text" placeholder="https://...">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveResourceBtn" data-t="save" style="border:none;">Save</button>
+      <button class="btn btn-ghost" id="cancelAdminBtn" data-t="cancel">Cancel</button>
+    </div>
+
+    <div style="margin-top:20px; border-top:1px solid var(--line); padding-top:14px;">
+      <p class="sub" style="margin:0 0 6px;" data-t="added_by_you">Added by you this session</p>
+      <div id="addedList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- i18n ---------- */
+const STRINGS = {
+  fr:{
+    tagline:"Plateforme d'apprentissage",
+    nav_home:"Accueil", nav_fields:"Filières", nav_books:"Livres",
+    dark_toggle:"Mode sombre",
+    hero_title:"Chaque cours, chaque semestre, une seule étagère.",
+    hero_sub:"Cours, résumés et examens organisés par filière et semestre — construit par des étudiants, ouvert à tous.",
+    hero_cta_browse:"Parcourir les ressources",
+    hero_cta_admin:"Admin — ajouter une ressource",
+    stat_subjects:"matières", stat_resources:"ressources", stat_langs:"langues",
+    tip_resume:"Nouveau ici ? Commence par les résumés — la façon la plus rapide de réviser avant un examen.",
+    filter_all:"Tous les semestres", type_all:"Tout", 
+    footer_note:"Exemple construit à titre de démonstration, avec une structure inspirée d'un vrai site de ressources d'études.",
+    footer_admin:"Espace développeur / admin",
+    modal_title:"Ajouter une ressource",
+    modal_sub:"Outil d'exemple — accessible librement ici. Les ressources ajoutées sont enregistrées sur ce navigateur uniquement (elles ne seront pas visibles pour les autres visiteurs).",
+    f_field:"Filière", f_sem:"Semestre", f_subject:"Nom de la matière",
+    f_type:"Type de ressource", f_title:"Titre de la ressource", f_link:"Lien (optionnel)",
+    type_cours:"Cours", type_resume:"Résumé", type_exam:"Examens / Exercices",
+    save:"Enregistrer", cancel:"Annuler",
+    added_by_you:"Ajouté par vous cette session",
+    empty:"Rien pour l'instant sur cette matière — ajoutez une ressource depuis l'espace admin.",
+    remove:"retirer",
+    toast_added:"Ressource ajoutée.",
+    field_eco:"Sciences Économiques et Gestion", field_dar:"Droit (arabe)", field_dfr:"Droit (français)",
+    master:"Master"
+  },
+  en:{
+    tagline:"Study Hub",
+    nav_home:"Home", nav_fields:"Fields", nav_books:"Books",
+    dark_toggle:"Dark mode",
+    hero_title:"Every course, every semester, one shelf.",
+    hero_sub:"Lessons, summaries and past exams organised by field and semester — built by students, kept open for everyone.",
+    hero_cta_browse:"Browse resources",
+    hero_cta_admin:"Admin — add a resource",
+    stat_subjects:"subjects", stat_resources:"resources", stat_langs:"languages",
+    tip_resume:"New here? Start with the summaries — the fastest way to review before an exam.",
+    filter_all:"All semesters", type_all:"All",
+    footer_note:"Sample built for demonstration, with a structure inspired by a real study-resources site.",
+    footer_admin:"Developer / admin panel",
+    modal_title:"Add a resource",
+    modal_sub:"Sample admin tool — resources you add are saved on this browser only (other visitors won't see them).",
+    f_field:"Field", f_sem:"Semester", f_subject:"Subject name",
+    f_type:"Resource type", f_title:"Resource title", f_link:"Link (optional)",
+    type_cours:"Lesson", type_resume:"Summary", type_exam:"Exam / Exercises",
+    save:"Save", cancel:"Cancel",
+    added_by_you:"Added by you this session",
+    empty:"Nothing here yet — add a resource from the admin panel.",
+    remove:"remove",
+    toast_added:"Resource added.",
+    field_eco:"Economics & Management", field_dar:"Law (Arabic track)", field_dfr:"Law (French track)",
+    master:"Master"
+  },
+  ar:{
+    tagline:"منصة تعليمية",
+    nav_home:"الرئيسية", nav_fields:"الشعب", nav_books:"كتب",
+    dark_toggle:"الوضع الداكن",
+    hero_title:"كل مادة، كل سداسي، في مكان واحد.",
+    hero_sub:"دروس وملخصات وامتحانات سابقة مرتبة حسب الشعبة والسداسي — من إنجاز الطلبة، ومتاحة للجميع.",
+    hero_cta_browse:"تصفح الموارد",
+    hero_cta_admin:"لوحة الإدارة — إضافة مورد",
+    stat_subjects:"مواد", stat_resources:"موارد", stat_langs:"لغات",
+    tip_resume:"جديد هنا؟ ابدأ بالملخصات — أسرع طريقة للمراجعة قبل الامتحان.",
+    filter_all:"كل السداسيات", type_all:"الكل",
+    footer_note:"نموذج تجريبي للعرض، ببنية مستوحاة من موقع حقيقي للموارد الدراسية.",
+    footer_admin:"لوحة المطور / الإدارة",
+    modal_title:"إضافة مورد",
+    modal_sub:"أداة إدارة تجريبية — الموارد التي تضيفها تُحفظ على هذا المتصفح فقط (لن يراها الزوار الآخرون).",
+    f_field:"الشعبة", f_sem:"السداسي", f_subject:"اسم المادة",
+    f_type:"نوع المورد", f_title:"عنوان المورد", f_link:"رابط (اختياري)",
+    type_cours:"درس", type_resume:"ملخص", type_exam:"امتحانات / تمارين",
+    save:"حفظ", cancel:"إلغاء",
+    added_by_you:"أضفتها خلال هذه الجلسة",
+    empty:"لا شيء بعد في هذه المادة — أضف موردًا من لوحة الإدارة.",
+    remove:"حذف",
+    toast_added:"تمت إضافة المورد.",
+    field_eco:"العلوم الاقتصادية والتدبير", field_dar:"القانون (بالعربية)", field_dfr:"القانون (بالفرنسية)",
+    master:"ماستر"
+  }
+};
+
+/* ---------- fields & semesters ---------- */
+const FIELDS = [
+  { id:"eco", nameKey:"field_eco", sems:["S1","S2","S3","S4","S5","S6","MASTER"] },
+  { id:"dar", nameKey:"field_dar", sems:["S1","S2","S3","S4","S5"] },
+  { id:"dfr", nameKey:"field_dfr", sems:["S1","S2","S3","S4","S5","S6"] }
+];
+
+/* ---------- catalog, drawn from the reference site's course structure ---------- */
+/* t: array of resource types actually available ('cours','resume','exam') */
+const DEFAULT_SUBJECTS = [
+  // ECO — S1
+  { field:"eco", sem:"S1", name:{fr:"Comptabilité générale", en:"General Accounting", ar:"المحاسبة العامة"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S1", name:{fr:"Microéconomie", en:"Microeconomics", ar:"الاقتصاد الجزئي"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S1", name:{fr:"Mathématique", en:"Mathematics", ar:"الرياضيات"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S1", name:{fr:"Introduction aux sciences de gestion", en:"Intro to Management Sciences", ar:"مدخل لعلوم التدبير"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S1", name:{fr:"Management", en:"Management", ar:"التدبير"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S1", name:{fr:"Langues étrangères", en:"Foreign Languages", ar:"اللغات الأجنبية"}, t:["cours","exam"] },
+  // ECO — S2
+  { field:"eco", sem:"S2", name:{fr:"Management fondamental", en:"Fundamentals of Management", ar:"مبادئ التدبير"}, t:["cours"] },
+  { field:"eco", sem:"S2", name:{fr:"Compétence numérique et IA", en:"Digital Skills & AI", ar:"الكفاءات الرقمية والذكاء الاصطناعي"}, t:["cours"] },
+  // ECO — S3
+  { field:"eco", sem:"S3", name:{fr:"Droit de l'entreprise", en:"Business Law", ar:"قانون المقاولة"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S3", name:{fr:"Macroéconomie", en:"Macroeconomics", ar:"الاقتصاد الكلي"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S3", name:{fr:"Informatique de gestion", en:"Management Information Systems", ar:"المعلوميات التدبيرية"}, t:["resume","exam"] },
+  { field:"eco", sem:"S3", name:{fr:"Comptabilité analytique", en:"Cost Accounting", ar:"المحاسبة التحليلية"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S3", name:{fr:"Anglais et communication", en:"English Language & Communication", ar:"اللغة الإنجليزية والتواصل"}, t:["cours"] },
+  { field:"eco", sem:"S3", name:{fr:"Économie du Maroc", en:"Moroccan Economy", ar:"اقتصاد المغرب"}, t:["cours","exam"] },
+  // ECO — S4
+  { field:"eco", sem:"S4", name:{fr:"Comptabilité des Sociétés", en:"Corporate Accounting", ar:"محاسبة الشركات"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S4", name:{fr:"Analyse financière", en:"Financial Analysis", ar:"التحليل المالي"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S4", name:{fr:"GRH", en:"HR Management", ar:"تدبير الموارد البشرية"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S4", name:{fr:"Marketing", en:"Marketing", ar:"التسويق"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S4", name:{fr:"Économie monétaire II", en:"Monetary Economics II", ar:"الاقتصاد النقدي 2"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S4", name:{fr:"Finances publiques", en:"Public Finance", ar:"المالية العامة"}, t:["cours","resume","exam"] },
+  // ECO — S5
+  { field:"eco", sem:"S5", name:{fr:"Contrôle de gestion", en:"Management Control", ar:"مراقبة التدبير"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"GRH", en:"HR Management", ar:"تدبير الموارد البشرية"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"Management stratégique", en:"Strategic Management", ar:"التدبير الاستراتيجي"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"Gestion de projet", en:"Project Management", ar:"تدبير المشاريع"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"GFA", en:"Financial & Accounting Management", ar:"التدبير المالي والمحاسبي"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"Fiscalité des entreprises", en:"Corporate Taxation", ar:"جبايات المقاولات"}, t:["cours","resume","exam"] },
+  { field:"eco", sem:"S5", name:{fr:"Comptabilité nationale", en:"National Accounting", ar:"المحاسبة الوطنية"}, t:["cours","resume","exam"] },
+  // ECO — S6
+  { field:"eco", sem:"S6", name:{fr:"Économétrie", en:"Econometrics", ar:"الاقتصاد القياسي"}, t:[] },
+  { field:"eco", sem:"S6", name:{fr:"Audit comptable et financier", en:"Accounting & Financial Audit", ar:"التدقيق المحاسبي والمالي"}, t:[] },
+  { field:"eco", sem:"S6", name:{fr:"Culture entrepreneuriale", en:"Entrepreneurial Culture", ar:"الثقافة المقاولاتية"}, t:[] },
+  { field:"eco", sem:"S6", name:{fr:"Politique budgétaire et fiscale", en:"Budgetary & Fiscal Policy", ar:"السياسة الميزانياتية والجبائية"}, t:[] },
+  // ECO — Master
+  { field:"eco", sem:"MASTER", name:{fr:"Master Tanger-Tétouan — fiche technique", en:"Master Tangier-Tetouan — factsheet", ar:"ماستر طنجة تطوان — البطاقة التقنية"}, t:[] },
+
+  // Droit AR
+  { field:"dar", sem:"S1", name:{fr:"Introduction à l'étude du droit", en:"Introduction to Law", ar:"المدخل لدراسة القانون"}, t:[] },
+  { field:"dar", sem:"S1", name:{fr:"Introduction à l'économie et à la gestion", en:"Intro to Economics & Management", ar:"مدخل لدراسة الاقتصاد والتدبير"}, t:[] },
+  { field:"dar", sem:"S1", name:{fr:"Introduction aux sciences politiques", en:"Introduction to Political Science", ar:"مدخل إلى علم السياسة"}, t:[] },
+  { field:"dar", sem:"S1", name:{fr:"Théorie générale du droit constitutionnel", en:"General Theory of Constitutional Law", ar:"النظرية العامة للقانون الدستوري"}, t:[] },
+  { field:"dar", sem:"S2", name:{fr:"Droit pénal général", en:"General Criminal Law", ar:"القانون الجنائي العام"}, t:[] },
+  { field:"dar", sem:"S2", name:{fr:"Théorie générale du droit constitutionnel", en:"General Theory of Constitutional Law", ar:"النظرية العامة للقانون الدستوري"}, t:[] },
+  { field:"dar", sem:"S3", name:{fr:"Droit de la famille", en:"Family Law", ar:"قانون الأسرة"}, t:[] },
+  { field:"dar", sem:"S3", name:{fr:"Droit social", en:"Social Law", ar:"القانون الاجتماعي"}, t:[] },
+  { field:"dar", sem:"S3", name:{fr:"Finances publiques", en:"Public Finance", ar:"المالية العامة"}, t:[] },
+  { field:"dar", sem:"S4", name:{fr:"Droit fiscal", en:"Tax Law", ar:"القانون الجبائي"}, t:[] },
+  { field:"dar", sem:"S4", name:{fr:"Droits de l'Homme", en:"Human Rights", ar:"حقوق الإنسان"}, t:[] },
+  { field:"dar", sem:"S4", name:{fr:"Droit des sociétés", en:"Company Law", ar:"قانون الشركات"}, t:[] },
+  { field:"dar", sem:"S5", name:{fr:"Propriété intellectuelle", en:"Intellectual Property", ar:"الملكية الفكرية"}, t:[] },
+  { field:"dar", sem:"S5", name:{fr:"Difficultés de l'entreprise", en:"Business Distress Law", ar:"صعوبات المقاولة"}, t:[] },
+  { field:"dar", sem:"S5", name:{fr:"Droit des assurances", en:"Insurance Law", ar:"قانون التأمين"}, t:[] },
+
+  // Droit FR
+  { field:"dfr", sem:"S1", name:{fr:"Introduction au droit musulman", en:"Introduction to Islamic Law", ar:"مدخل للفقه الإسلامي"}, t:[] },
+  { field:"dfr", sem:"S1", name:{fr:"Introduction aux sciences politiques", en:"Introduction to Political Science", ar:"مدخل للعلوم السياسية"}, t:[] },
+  { field:"dfr", sem:"S1", name:{fr:"Introduction aux sciences économiques et gestion", en:"Intro to Economics & Management", ar:"مدخل للعلوم الاقتصادية والتدبير"}, t:[] },
+  { field:"dfr", sem:"S2", name:{fr:"Théorie Générale des Obligations et des Contrats", en:"General Theory of Obligations & Contracts", ar:"النظرية العامة للالتزامات والعقود"}, t:[] },
+  { field:"dfr", sem:"S2", name:{fr:"Organisation Administrative", en:"Administrative Organization", ar:"التنظيم الإداري"}, t:[] },
+  { field:"dfr", sem:"S3", name:{fr:"Finances publiques", en:"Public Finance", ar:"المالية العامة"}, t:[] },
+  { field:"dfr", sem:"S3", name:{fr:"Droit social", en:"Social Law", ar:"القانون الاجتماعي"}, t:[] },
+  { field:"dfr", sem:"S3", name:{fr:"Droit de famille", en:"Family Law", ar:"قانون الأسرة"}, t:[] },
+  { field:"dfr", sem:"S4", name:{fr:"Droit des Sociétés", en:"Company Law", ar:"قانون الشركات"}, t:[] },
+  { field:"dfr", sem:"S4", name:{fr:"Droit pénal spécial", en:"Special Criminal Law", ar:"القانون الجنائي الخاص"}, t:[] },
+  { field:"dfr", sem:"S4", name:{fr:"Droit fiscal", en:"Tax Law", ar:"القانون الجبائي"}, t:[] },
+  { field:"dfr", sem:"S5", name:{fr:"Propriété intellectuelle", en:"Intellectual Property", ar:"الملكية الفكرية"}, t:[] },
+  { field:"dfr", sem:"S5", name:{fr:"Criminologie", en:"Criminology", ar:"علم الإجرام"}, t:[] },
+  { field:"dfr", sem:"S5", name:{fr:"Droit des assurances", en:"Insurance Law", ar:"قانون التأمين"}, t:[] },
+  { field:"dfr", sem:"S6", name:{fr:"Droit Bancaire", en:"Banking Law", ar:"القانون البنكي"}, t:[] },
+  { field:"dfr", sem:"S6", name:{fr:"Procédure Pénale", en:"Criminal Procedure", ar:"المسطرة الجنائية"}, t:[] },
+  { field:"dfr", sem:"S6", name:{fr:"Droit international privé", en:"Private International Law", ar:"القانون الدولي الخاص"}, t:[] }
+];
+
+/* ---------- state ---------- */
+let lang = "fr";
+let activeField = "eco";
+let activeSem = "all";
+let activeType = "all";
+let customResources = []; // {field, sem, subject, type, title, link}
+const STORAGE_KEY = "madrasti-custom-resources";
+
+function t(key){ return (STRINGS[lang] && STRINGS[lang][key]) || key; }
+function fieldName(id){ const f=FIELDS.find(x=>x.id===id); return f? t(f.nameKey) : id; }
+function semLabel(sem){ return sem==="MASTER" ? t("master") : sem; }
+
+function applyStaticStrings(){
+  document.querySelectorAll("[data-t]").forEach(el=>{ el.textContent = t(el.getAttribute("data-t")); });
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.getElementById("langSelect").value = lang;
+}
+
+function typeLabel(type){ return type==="cours" ? t("type_cours") : type==="resume" ? t("type_resume") : t("type_exam"); }
+
+function subjectResources(field, sem, subjectKey){
+  const base = DEFAULT_SUBJECTS.find(s=>s.field===field && s.sem===sem &&
+    (s.name.fr===subjectKey || s.name.en===subjectKey || s.name.ar===subjectKey));
+  const baseRes = base ? base.t.map(ty=>({type:ty, title:typeLabel(ty), custom:false})) : [];
+  const custom = customResources.filter(r=>r.field===field && r.sem===sem && r.subject===subjectKey)
+    .map(r=>({type:r.type, title:r.title, link:r.link, custom:true}));
+  const all = baseRes.concat(custom);
+  // résumés first, to make review easier
+  all.sort((a,b)=> (a.type==="resume"?0:1) - (b.type==="resume"?0:1));
+  return all;
+}
+
+/* ---------- render ---------- */
+function renderFieldTabs(){
+  const box = document.getElementById("fieldTabs");
+  box.innerHTML = "";
+  FIELDS.forEach(f=>{
+    const tab = document.createElement("button");
+    tab.className = "tab" + (activeField===f.id ? " active" : "");
+    tab.textContent = fieldName(f.id);
+    tab.onclick = ()=>{ activeField=f.id; activeSem="all"; renderAll(); };
+    box.appendChild(tab);
+  });
+}
+
+function renderSemFilter(){
+  const box = document.getElementById("semFilter");
+  box.innerHTML = "";
+  const field = FIELDS.find(f=>f.id===activeField);
+  const allChip = document.createElement("button");
+  allChip.className = "chip" + (activeSem==="all" ? " active" : "");
+  allChip.textContent = t("filter_all");
+  allChip.onclick = ()=>{ activeSem="all"; renderAll(); };
+  box.appendChild(allChip);
+  field.sems.forEach(sem=>{
+    const chip = document.createElement("button");
+    chip.className = "chip" + (activeSem===sem ? " active" : "");
+    chip.textContent = semLabel(sem);
+    chip.onclick = ()=>{ activeSem=sem; renderAll(); };
+    box.appendChild(chip);
+  });
+}
+
+function renderTypeFilter(){
+  const box = document.getElementById("typeFilter");
+  box.innerHTML = "";
+  const options = [["all", t("type_all")], ["cours", t("type_cours")], ["resume", t("type_resume")], ["exam", t("type_exam")]];
+  options.forEach(([val,label])=>{
+    const chip = document.createElement("button");
+    chip.className = "chip" + (val==="resume" ? " type-resume" : "") + (activeType===val ? " active" : "");
+    chip.textContent = label;
+    chip.onclick = ()=>{ activeType=val; renderAll(); };
+    box.appendChild(chip);
+  });
+}
+
+function renderCatalog(){
+  const root = document.getElementById("catalogRoot");
+  root.innerHTML = "";
+  let subjectCount = 0, resourceCount = 0;
+
+  const field = FIELDS.find(f=>f.id===activeField);
+  const semsToShow = activeSem==="all" ? field.sems : [activeSem];
+
+  semsToShow.forEach(sem=>{
+    let subjectsForSem = DEFAULT_SUBJECTS.filter(s=>s.field===activeField && s.sem===sem);
+
+    const customKeys = new Set(
+      customResources.filter(r=>r.field===activeField && r.sem===sem).map(r=>r.subject)
+    );
+    customKeys.forEach(key=>{
+      if(!subjectsForSem.some(s=> s.name.fr===key || s.name.en===key || s.name.ar===key)){
+        subjectsForSem.push({field:activeField, sem, name:{fr:key,en:key,ar:key}, t:[]});
+      }
+    });
+
+    if(subjectsForSem.length===0) return;
+
+    const heading = document.createElement("h2");
+    heading.className = "field-title";
+    heading.textContent = fieldName(activeField) + " · " + semLabel(sem);
+    root.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.className = "course-grid";
+    let anyCardShown = false;
+
+    subjectsForSem.forEach(s=>{
+      const subjName = s.name[lang] || s.name.fr;
+      let res = subjectResources(activeField, sem, s.name.fr.length ? s.name.fr : subjName);
+      if(activeType !== "all") res = res.filter(r=>r.type===activeType);
+      if(activeType !== "all" && res.length===0) return; // hide subjects with no matching type
+
+      anyCardShown = true;
+      subjectCount++; resourceCount += res.length;
+
+      const card = document.createElement("div");
+      card.className = "course-card";
+      const semTag = document.createElement("div");
+      semTag.className = "course-sem";
+      semTag.textContent = semLabel(sem);
+      const h3 = document.createElement("h3");
+      h3.textContent = subjName;
+      card.appendChild(semTag);
+      card.appendChild(h3);
+
+      if(res.length===0){
+        const empty = document.createElement("p");
+        empty.className = "empty-note";
+        empty.textContent = t("empty");
+        card.appendChild(empty);
+      } else {
+        const list = document.createElement("ul");
+        list.className = "res-list";
+        res.forEach(r=>{
+          const li = document.createElement("li");
+          const left = document.createElement("span");
+          left.textContent = r.custom ? r.title : typeLabel(r.type);
+          const right = document.createElement("span");
+          right.className = "res-type" + (r.type==="resume" ? " resume" : "");
+          right.textContent = typeLabel(r.type);
+          li.appendChild(left); li.appendChild(right);
+          list.appendChild(li);
+        });
+        card.appendChild(list);
+      }
+      grid.appendChild(card);
+    });
+
+    if(anyCardShown){ root.appendChild(grid); } else { heading.remove(); }
+  });
+
+  document.getElementById("statSubjects").textContent = subjectCount;
+  document.getElementById("statResources").textContent = resourceCount;
+}
+
+function renderAdminSelects(){
+  const fieldSel = document.getElementById("fInputField");
+  const prevField = fieldSel.value || activeField;
+  fieldSel.innerHTML = "";
+  FIELDS.forEach(f=>{
+    const opt = document.createElement("option");
+    opt.value = f.id; opt.textContent = fieldName(f.id);
+    fieldSel.appendChild(opt);
+  });
+  fieldSel.value = prevField;
+  fieldSel.onchange = renderAdminSemOptions;
+  renderAdminSemOptions();
+}
+function renderAdminSemOptions(){
+  const fieldSel = document.getElementById("fInputField");
+  const semSel = document.getElementById("fInputSem");
+  const field = FIELDS.find(f=>f.id===fieldSel.value) || FIELDS[0];
+  semSel.innerHTML = "";
+  field.sems.forEach(sem=>{
+    const opt = document.createElement("option");
+    opt.value = sem; opt.textContent = semLabel(sem);
+    semSel.appendChild(opt);
+  });
+}
+
+function renderAddedList(){
+  const box = document.getElementById("addedList");
+  box.innerHTML = "";
+  if(customResources.length===0){
+    const p = document.createElement("p");
+    p.className = "sub"; p.style.margin = "0"; p.textContent = "—";
+    box.appendChild(p);
+    return;
+  }
+  customResources.forEach((r,i)=>{
+    const row = document.createElement("div");
+    row.className = "admin-list-row";
+    const span = document.createElement("span");
+    span.textContent = `${r.subject} — ${r.title}`;
+    const btn = document.createElement("button");
+    btn.textContent = t("remove");
+    btn.onclick = ()=>{ customResources.splice(i,1); persist(); renderAll(); };
+    row.appendChild(span); row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+
+function renderAll(){
+  applyStaticStrings();
+  renderFieldTabs();
+  renderSemFilter();
+  renderTypeFilter();
+  renderCatalog();
+  renderAdminSelects();
+  renderAddedList();
+}
+
+/* ---------- storage ---------- */
+/* Saves to this browser only (localStorage). Each admin's additions stay on
+   their own device/browser — nothing is sent to a server. */
+async function loadResources(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    customResources = raw ? JSON.parse(raw) : [];
+  }catch(e){ customResources = []; }
+}
+async function persist(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(customResources)); }
+  catch(e){ console.error("Storage error:", e); }
+}
+
+function showToast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  setTimeout(()=> el.classList.remove("show"), 2200);
+}
+
+/* ---------- events ---------- */
+document.getElementById("langSelect").addEventListener("change", e=>{ lang = e.target.value; renderAll(); });
+document.getElementById("darkToggle").addEventListener("click", ()=>{ document.documentElement.classList.toggle("dark"); });
+function openAdmin(){ document.getElementById("adminOverlay").classList.add("show"); }
+function closeAdmin(){ document.getElementById("adminOverlay").classList.remove("show"); }
+document.getElementById("openAdminBtn").addEventListener("click", openAdmin);
+document.getElementById("openAdminBtn2").addEventListener("click", openAdmin);
+document.getElementById("cancelAdminBtn").addEventListener("click", closeAdmin);
+document.getElementById("adminOverlay").addEventListener("click", e=>{ if(e.target.id==="adminOverlay") closeAdmin(); });
+
+document.getElementById("saveResourceBtn").addEventListener("click", async ()=>{
+  const field = document.getElementById("fInputField").value;
+  const sem = document.getElementById("fInputSem").value;
+  const subject = document.getElementById("fInputSubject").value.trim();
+  const type = document.getElementById("fInputType").value;
+  const title = document.getElementById("fInputTitle").value.trim();
+  const link = document.getElementById("fInputLink").value.trim();
+
+  if(!subject || !title){
+    showToast(lang==="ar" ? "يرجى ملء اسم المادة والعنوان" : lang==="en" ? "Please fill subject and title" : "Merci de remplir la matière et le titre");
+    return;
+  }
+  customResources.push({field, sem, subject, type, title, link: link || null});
+  await persist();
+  document.getElementById("fInputSubject").value = "";
+  document.getElementById("fInputTitle").value = "";
+  document.getElementById("fInputLink").value = "";
+  renderAll();
+  showToast(t("toast_added"));
+});
+
+/* ---------- init ---------- */
+(async function init(){
+  await loadResources();
+  renderAll();
+})();
+</script>
+</body>
+</html>
